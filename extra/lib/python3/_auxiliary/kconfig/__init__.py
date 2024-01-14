@@ -5,13 +5,14 @@ assert "__main__" != __name__
 
 
 def _private():
-    from . import common as _common_module
+    from .. import common as _common_module
 
     _make_lazy = _common_module.module_helpers.lazy_attributes.make_getter
     _make_property_collector = _common_module.property_collector.make
 
     return _make_property_collector(lazy = _make_lazy(dictionary = dict(
-        HLDS = lambda module: module.hlds.Class
+        make = lambda module: getattr(module, "_class").make,
+        Class = lambda module: getattr(module, "_class").Class
     )))
 
 
