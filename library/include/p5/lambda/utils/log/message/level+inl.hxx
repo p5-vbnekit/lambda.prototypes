@@ -1,13 +1,13 @@
 #pragma once
 
 #include <stdexcept>
+#include <string_view>
 #include <unordered_map>
 
-#include "message.hxx"
+#include "level.hxx"
 
 
-namespace p5::lambda::utils::log::message {
-namespace level {
+namespace p5::lambda::utils::log::message::level {
 
 template <Type> struct ToString_ final {};
 
@@ -51,21 +51,4 @@ inline auto const * to_string(Type const &value) noexcept(false) {
     return iterator_->second.data();
 }
 
-} // namespace level
-
-namespace location {
-
-inline constexpr auto unknown(Type const &value) noexcept(true) {
-    constexpr auto const empty_ = Type{};
-    auto const * const file_ = value.file_name();
-    if (static_cast<bool>(file_) && static_cast<bool>(*file_) && (
-            empty_.file_name() != file_)
-    ) return false;
-    auto const * const function_ = value.function_name();
-    return ! (static_cast<bool>(function_) && static_cast<bool>(*function_) && (
-        empty_.function_name() != function_
-    ));
-}
-
-} // namespace location
-} // namespace p5::lambda::utils::log::message
+} // namespace p5::lambda::utils::log::message::level
