@@ -13,10 +13,10 @@ namespace handler {
 namespace parent_ = this_;
 namespace this_ = parent_::handler;
 
-using Type = ::std::function<void(Message const &)>;
+using Type = ::std::function<void(Message &&)>;
 using Message = parent_::Message;
 
-template <class T> static auto capture(T &&) noexcept(false);
+template <class T> auto capture(T &&) noexcept(false);
 
 } // namespace handler
 

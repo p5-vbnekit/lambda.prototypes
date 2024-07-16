@@ -7,48 +7,34 @@
 
 #include <boost/format.hpp>
 
-#include <p5/lambda/utils/generator.hxx>
-
 #include <p5/lambda/utils/log.hxx>
+#include <p5/lambda/utils/generator.hxx>
 
 
 namespace p5::lambda::utils::log {
 namespace raii {
+namespace context {
 
-this_::Type::Type(Target *target) noexcept(true): target{target} {};
+void dispatch(this_::Type &context) noexcept(true) {
+    auto * const target_ = ::std::exchange(context.target, nullptr);
+    if (! target_) return;
+    target_->write(parent_::parent_::Message{
+        .text = parent_::text::make(context.text),
+        .level = context.level, .location = ::std::move(context.location)
+    });
+}
 
-this_::Type::Type(Message &&message, Target *target) noexcept(true):
-    target{target}, message{::std::exchange(message, {})}
-{}
-
-this_::Type::Type(Message const &message, Target *target) noexcept(true):
-    target{target}, message{message}
-{}
-
-this_::Type::Type(Target *target, Message &&message) noexcept(true):
-    target{target}, message{::std::exchange(message, {})}
-{}
-
-this_::Type::Type(Target *target, Message const &message) noexcept(true):
-    target{target}, message{message}
-{}
+} // namespace context
 
 this_::Type::~Type() noexcept(true) {
-    if (target) target->write(message);
+    if (context_.text) this_::context::dispatch(context_);
 }
 
-this_::Type::Type(Type &&other) noexcept(true):
-    target{::std::exchange(other.target, nullptr)},
-    message{::std::exchange(other.message, {})}
-{}
-
-this_::Type & this_::Type::operator = (Type &&other) noexcept(true) {
-    if (&other != this) {
-        ::std::exchange(other.target, target);
-        ::std::exchange(other.message, message);
-    }
-    return *this;
-}
+this_::Type::Type(Context &&context) noexcept(false): context_{[&context] {
+    if (! context.target) throw ::std::invalid_argument{"empty target"};
+    if (context.text) throw ::std::invalid_argument{"text not empty"};
+    return ::std::move(context);
+} ()} {}
 
 } // namespace raii
 
@@ -199,26 +185,36 @@ namespace text {
 // }
 // } // namespace walker::generator
 
+namespace driver {
+namespace interface {
+
+this_::Type::~Type() noexcept(true) {}
+
+this_::Type::Type() noexcept(true) {}
+this_::Type::Type(Type &&) noexcept(true) {}
+this_::Type & this_::Type::operator = (Type &&) noexcept(true) { return *this; }
+
+} // namespace interface
+} // namespace driver
 } // namespace text
 
 namespace location {
 
-::std::string to_string(
-    Type const &value, ::std::string_view const &base
-) noexcept(false) {
+::std::string this_::Type::to_string(
+    ::std::string_view const &root
+) const noexcept(false) {
     ::std::ostringstream stream_;
     using Text_ = ::std::decay_t<decltype(stream_.str())>;
     using Generator_ = parent_::parent_::parent_::generator::Coroutine<Text_>;
-    ::std::ranges::move([&value, &base] () -> Generator_ {
-        auto text_ = Text_{value.function_name()};
+    ::std::ranges::move([this, &root] () -> Generator_ {
+        auto text_ = Text_{function};
         if (! text_.empty()) co_yield ::std::move(text_);
-        if ((text_ = value.file_name()).empty()) co_return;
-        if (! (base.empty() || (0 == base.at(0)))) {
-            text_ = ::std::filesystem::relative(text_, base).string();
+        if ((text_ = file).empty()) co_return;
+        if (! (root.empty() || (0 == root.at(0)))) {
+            text_ = ::std::filesystem::relative(text_, root).string();
             if (text_.empty()) co_return;
         }
-        auto const line_ = value.line();
-        if (0 < line_) text_ = (::boost::format("%s#%u") % text_ % line_).str();
+        if (0 < line) text_ = (::boost::format("%s#%u") % text_ % line).str();
         co_yield Text_{"|"};
         co_yield text_;
     } (), ::std::ostream_iterator<Text_>{stream_});
@@ -228,22 +224,26 @@ namespace location {
 } // namespace location
 } // namespace message
 
+namespace interface {
+
 this_::Type::RAII this_::Type::write(
     Message::Level level, FinalToken_ &&, Message::Location &&location
-) noexcept(true) {
-    auto &&message_ = Message{.level = level};
-    if (Message::Level::Info < level) message_.location = ::std::move(location);
-    return {this, ::std::move(message_)};
+) const noexcept(true) {
+    auto context_ = this_::RAII::Context{.level = level, .target = this};
+    if (Message::Level::Info < level) context_.location = ::std::move(location);
+    return this_::RAII{::std::move(context_)};
 }
 
-void this_::Type::write(Message const &message) noexcept(true) {
+this_::Type::Type::~Type() noexcept(true) = default;
+
+} // namespace interface
+
+void this_::Type::write_(Message &&message) const noexcept(true) {
     if (! handler) return;
-    if (message.location && message::location::unknown(*(message.location))) {
-        try { handler(Message{.text = message.text, .level = message.level}); }
-        catch(...) {}
-        return;
-    }
-    try { handler(message); } catch(...) {}
+    if (message.location && message::location::unknown(
+        *(message.location)
+    )) message.location.reset();
+    try { handler(::std::move(message)); } catch(...) {}
 }
 
 } // namespace p5::lambda::utils::log

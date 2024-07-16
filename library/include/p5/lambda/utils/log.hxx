@@ -6,3 +6,4 @@
 #include "log/raii.hxx"
 #include "log/handler.hxx"
 #include "log/message.hxx"
+#include "log/interface.hxx"

@@ -5,7 +5,7 @@
 
 namespace p5::lambda::utils::log::message::level {
 
-enum class Type { Error, Warning, Info, Debug, Developer };
+enum class Type { Error, Warning, Info, Debug, Developer, Default = Info };
 
 } // namespace p5::lambda::utils::log::message::level
 

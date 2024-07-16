@@ -1,14 +1,5 @@
 #pragma once
 
-#include <string>
-#include <string_view>
-
-#ifdef __cpp_lib_source_location
-#include <source_location>
-#else
-#include <experimental/source_location>
-#endif
-
 #include "namespace_.hxx"
 
 
@@ -18,17 +9,25 @@ namespace location {
 namespace parent_ = this_;
 namespace this_ = parent_::location;
 
-#ifdef __cpp_lib_source_location
-using Type = ::std::source_location;
-#else
-using Type = ::std::experimental::source_location;
-#endif
+namespace native {
 
-constexpr static auto unknown(Type const &) noexcept(true);
+namespace parent_ = this_;
+namespace this_ = parent_::native;
 
-::std::string to_string(
-    Type const &, ::std::string_view const &root = {}
+} // namespace native
+
+struct Type;
+
+constexpr auto unknown() noexcept(true);
+constexpr auto unknown(Type const &) noexcept(true);
+
+template <class ... T> auto to_string(
+    Type const &, T && ...
 ) noexcept(false);
+
+auto inspect() noexcept(true);
+
+template <class ... T> constexpr auto make(T && ...) noexcept(true);
 
 } // namespace location
 

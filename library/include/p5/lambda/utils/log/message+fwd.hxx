@@ -7,3 +7,10 @@
 #include "message/text+fwd.hxx"
 #include "message/level+fwd.hxx"
 #include "message/location+fwd.hxx"
+
+
+namespace p5::lambda::utils::log {
+
+using Message = this_::message::Type;
+
+} // namespace p5::lambda::utils::log

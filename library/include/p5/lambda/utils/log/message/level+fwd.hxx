@@ -11,8 +11,8 @@ namespace this_ = parent_::level;
 
 enum class Type;
 
-template <Type> constexpr static auto const * to_string() noexcept(true);
-static auto const * to_string(Type const &) noexcept(false);
+template <Type> constexpr auto const * to_string() noexcept(true);
+auto const * to_string(Type const &) noexcept(false);
 
 } // namespace level
 

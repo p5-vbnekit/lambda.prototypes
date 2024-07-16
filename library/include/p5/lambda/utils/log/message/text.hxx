@@ -1,30 +1,15 @@
 #pragma once
 
-#include <list>
-#include <tuple>
-#include <ranges>
-#include <variant>
-#include <utility>
-#include <iterator>
-#include <exception>
-#include <string_view>
 #include <type_traits>
-
-#include "../../generator.hxx"
 
 #include "text+fwd.hxx"
 
+#include "text/type.hxx"
+#include "text/chunk.hxx"
+#include "text/driver.hxx"
+
 
 namespace p5::lambda::utils::log::message::text {
-namespace chunk {
-
-struct Type final {
-    ::std::string_view reference = {};
-    bool terminated = false;
-};
-
-} // namespace chunk
-
 namespace view {
 namespace policy {
 namespace line {
@@ -59,37 +44,62 @@ template <class> struct Type final {
 } // namespace function
 } // namespace view
 
-struct Type final {
+namespace normailzer {
+namespace driver {
+
+template <> struct Type<this_::Interface *> final: this_::Interface {
     using Chunk = this_::Chunk;
+    using Source = this_::Interface *;
 
-    template <class = void> auto view() const noexcept(true);
-    template <class Policy> auto view(Policy &&) const noexcept(true);
+    virtual Chunk const * operator () () noexcept(true) override final;
 
-    template <class ... T> auto emplace(T && ...) noexcept(false);
-
-    auto operator * () const noexcept(true);
-
-    Type() = default;
-
-    template <class ... T> explicit Type(T && ... source) requires([] {
-        if constexpr (1 < sizeof ... (T)) return true;
-        else if constexpr (0 < sizeof ... (T)) return [] {
-            return ! ::std::is_base_of_v<Type, ::std::decay_t<decltype(
-                ::std::get<0>(::std::make_tuple(::std::declval<T>() ...))
-            )>>;
-        } ();
-        else return false;
-    } ()) { emplace(::std::forward<T>(source) ...); }
-
-    Type(Type &&) noexcept(true) = default;
-    Type(Type const &) = default;
-
-    Type & operator = (Type &&) noexcept(true) = default;
-    Type & operator = (Type const &) = default;
+    explicit Type(Source = nullptr) noexcept(true);
+    Type(Type &&) noexcept(true);
 
 private:
-    ::std::list<Chunk> chunks_ = {};
+    Source source_;
+
+    Type(Type const &) = delete;
+    Type & operator = (Type &&) = delete;
+    Type & operator = (Type const &) = delete;
 };
+
+template <class T> struct Type final: this_::Interface {
+    using Chunk = this_::Chunk;
+    using Source = ::std::remove_reference_t<T>;
+
+    static_assert(::std::is_same_v<Source, T>);
+
+    virtual Chunk const * operator () () noexcept(true) override final;
+
+    explicit Type(Source &&) noexcept(true);
+    virtual ~Type() noexcept(true) override final;
+
+private:
+    struct Adapter_ final: this_::Interface {
+        virtual Chunk const * operator () () noexcept(true) override final;
+
+        explicit Adapter_(Source &&) noexcept(true);
+        virtual ~Adapter_() noexcept(true) override final;
+
+    private:
+        Source source_;
+
+        Adapter_(Type const &) = delete;
+        Adapter_ & operator = (Adapter_ &&) = delete;
+        Adapter_ & operator = (Adapter_ const &) = delete;
+    };
+
+    Adapter_ adapter_;
+    this_::Type<this_::Interface *> implementation_{&adapter_};
+
+    Type(Type const &) = delete;
+    Type & operator = (Type &&) = delete;
+    Type & operator = (Type const &) = delete;
+};
+
+} // namespace driver
+} // namespace normailzer
 
 } // namespace p5::lambda::utils::log::message::text
 

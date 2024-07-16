@@ -16,8 +16,8 @@ struct Type final {
     using Level = this_::Level;
     using Location = this_::Location;
 
-    Text text = {};
-    Level level = Level::Info;
+    Text text{nullptr};
+    Level level = Level::Default;
     ::std::optional<Location> location = ::std::nullopt;
 };
 

@@ -1,27 +1,15 @@
 #pragma once
 
 #include "namespace_.hxx"
+#include "text/namespace_.hxx"
+
+#include "text/type+fwd.hxx"
+#include "text/chunk+fwd.hxx"
+#include "text/driver+fwd.hxx"
 
 
 namespace p5::lambda::utils::log::message {
 namespace text {
-
-namespace parent_ = this_;
-namespace this_ = parent_::text;
-
-namespace chunk {
-
-namespace parent_ = this_;
-namespace this_ = parent_::chunk;
-
-struct Type;
-
-template <class ... T> constexpr static auto make(T && ...) noexcept(true);
-
-} // namespace chunk
-
-using Chunk = chunk::Type;
-
 namespace view {
 
 namespace parent_ = this_;
@@ -68,12 +56,35 @@ template <class Policy> using Function = function::Type<Policy>;
 
 } // namespace view
 
-struct Type;
+namespace normailzer {
 
-template <class ... T> static auto make(T && ...) noexcept(true);
+namespace parent_ = this_;
+namespace this_ = parent_::normailzer;
+
+namespace driver {
+
+namespace parent_ = this_;
+namespace this_ = parent_::driver;
+
+using Chunk = parent_::parent_::Chunk;
+using Interface = parent_::parent_::driver::Interface;
+
+template <class> struct Type;
+
+template <class T> constexpr auto make(T &&) noexcept(true);
+
+} // namespace driver
+
+template <class T> using Driver = driver::Type<T>;
+
+template <class T> constexpr auto make(T &&) noexcept(true);
+
+} // namespace normailzer
+
+template <class T> constexpr auto make(T &&) noexcept(true);
 
 } // namespace text
 
-using Text = text::Type;
+using Text = this_::text::Type;
 
 } // namespace p5::lambda::utils::log::message

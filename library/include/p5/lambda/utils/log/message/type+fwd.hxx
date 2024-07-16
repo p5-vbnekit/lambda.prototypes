@@ -3,13 +3,8 @@
 #include "namespace_.hxx"
 
 
-namespace p5::lambda::utils::log {
-namespace message {
+namespace p5::lambda::utils::log::message {
 
 struct Type;
 
-} // namespace message
-
-using Message = message::Type;
-
-} // namespace p5::lambda::utils::log
+} // namespace p5::lambda::utils::log::message
