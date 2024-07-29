@@ -18,6 +18,7 @@ struct Context final {
     struct Meta final {
         using Api = parent_::parent_::metamod::Functions;
         using Plugin = parent_::parent_::metamod::plugin::Info;
+
         Api const &api;
         Plugin const &plugin;
     };

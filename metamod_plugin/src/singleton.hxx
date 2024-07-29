@@ -19,11 +19,11 @@ struct Meta final {
     using Globals = parent_::parent_::metamod::Globals;
     using Functions = parent_::parent_::metamod::Functions;
 
-    struct Plugin {
+    struct Plugin final {
         using Info = parent_::parent_::metamod::plugin::Info;
         using Functions = parent_::parent_::metamod::plugin::Functions;
 
-        Info info {
+        Info info = {
 #ifdef P5_LAMBDA_METAMOD_PLUGIN_NAME
             .name = P5_LAMBDA_METAMOD_PLUGIN_NAME,
 #endif

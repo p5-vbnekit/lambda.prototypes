@@ -22,6 +22,7 @@ namespace parent_ = this_;
 namespace this_ = parent_::private_;
 
 using Message = parent_::Interface::Message;
+namespace message = parent_::parent_::parent_::utils::log::message;
 
 inline constexpr static auto * metamod_sink(
     this_::Message::Level level,
@@ -42,9 +43,7 @@ inline static ::std::string make_tag(
 ) noexcept(false) {
     auto &&buffer_ = ::std::list<::std::string>{};
     if (plugin && (0 != *plugin)) buffer_.emplace_back(plugin);
-    auto const * const level_ =
-        parent_::parent_::parent_
-    ::utils::log::message::level::to_string(level);
+    auto const * const level_ = this_::message::level::to_string(level);
     if (level_ && (0 != level_)) buffer_.emplace_back(level_);
     return ::boost::algorithm::join(::std::move(buffer_), "|");
 }
@@ -52,9 +51,11 @@ inline static ::std::string make_tag(
 inline static auto compile_text(
     this_::Message &message
 ) noexcept(false) {
-    auto text_ = [&message_ = message.text] () mutable {
+    auto text_ = [
+        message_ = this_::message::text::normalizer::make(message.text)
+    ] () mutable {
         ::std::ostringstream stream_;
-        for (auto const &chunk_: *message_) stream_ << chunk_.reference;
+        for (auto const &chunk_: message_) stream_ << chunk_.reference;
         return stream_.str();
     } ();
     ::boost::algorithm::trim(text_);

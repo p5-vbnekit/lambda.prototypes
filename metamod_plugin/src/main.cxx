@@ -177,7 +177,7 @@ this_::Boolean this_::metamod::plugin::query(
 // - `globals`          (given)     global vars from metamod
 // - `game_functions`   (given)     copy of function tables from game shared module
 this_::Boolean this_::metamod::plugin::attach(
-    this_::Phase, this_::Functions *functions, parent_::Globals *globals,
+    this_::Phase phase, this_::Functions *functions, parent_::Globals *globals,
     parent_::parent_::game::functions::Pointers const *game_functions
 ) noexcept(true) {
     namespace private_ = parent_::parent_::private_;
