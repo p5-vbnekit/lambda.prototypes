@@ -34,6 +34,9 @@ void this_::game::inject(
 
         singleton_.engine.globals = globals;
         singleton_.engine.functions = *functions;
+
+        singleton_.container.assign(singleton_.engine.globals);
+        singleton_.container.assign(singleton_.engine.functions);
     }
 
     catch(...) {}
